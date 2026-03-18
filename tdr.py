@@ -60,17 +60,27 @@ def compute_gamma_t(
                      Tune to domain scale for spatial distance term.
         d:           Spatial or semantic distance from reference point.
                      Default 0.0 (pure temporal decay, no spatial term).
+                     How to set d by modality:
+                       Text/conversation  — cosine distance to previous similar turn
+                       Visual/stereo      — Hamming distance to last similar frame
+                                            (or disparity depth for stereo)
+                       VoxelMind          — physical distance in the etch
+                                            (bloom size, fracture length, etc.)
+                       General            — leave at 0.0 for pure time decay
 
     Returns:
-        gamma_t (float): Temporal relevance score in range (0.0, ~0.99].
+        gamma_t (float): Temporal relevance score clamped to [0.01, 0.99].
                          Higher = more relevant.
-                         Approaches 0 as t increases or d increases.
-                         Approaches ~0.99 at t=0, d=0 with default params.
+                         Clamped floor (0.01): fully aged records remain
+                         retrievable on direct query.
+                         Clamped ceiling (0.99): prevents perfect-score
+                         artifacts on brand-new records.
     """
     numerator   = U * P * (1.0 - H)
     denominator = 1.0 + delta_omega * tau
     exp_term    = -((d ** 2 / lambda_u ** 2) + (t / tau))
-    return (numerator / denominator) * math.exp(exp_term)
+    gamma_t     = (numerator / denominator) * math.exp(exp_term)
+    return max(0.01, min(0.99, gamma_t))
 
 
 def gamma_t_from_timestamp(
