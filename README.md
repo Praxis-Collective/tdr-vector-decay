@@ -2,6 +2,8 @@
 
 **A simple pattern for time-aware retrieval without post-retrieval hacks.**
 
+*Current work includes processing high-speed capture of physical formation events — including glass, laser ablation, and fracture — into structured memory records.*
+
 ---
 
 ## The Problem
